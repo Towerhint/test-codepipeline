@@ -8,7 +8,7 @@ from airflow.sdk import dag, task
     start_date=pendulum.datetime(2025, 1, 1, tz="UTC"),
     catchup=False,
     tags=["basic", "data-pipeline"],
-    description="A basic Airflow DAG for data pipeline operations",
+    description="A basic Airflow DAG for data pipeline operations for medwatch",
     default_args={
         "owner": "airflow",
         "retries": 1,

@@ -1,0 +1,132 @@
+# E2B R2 MedWatch Parser Configuration
+
+pipeline:
+  name: "e2b_r2_medwatch_parser"
+  version: "1.0.0"
+  description: "Parse and validate FDA MedWatch E2B R2 XML forms"
+  
+  # Schedule Configuration
+  schedule:
+    cron: "@daily"
+    timezone: "UTC"
+    catchup: false
+  
+  # Execution Settings
+  execution:
+    max_active_runs: 1
+    concurrency: 4
+    timeout_minutes: 30
+  
+  # Retry Configuration
+  retry:
+    retries: 3
+    retry_delay_minutes: 5
+    retry_exponential_backoff: true
+    max_retry_delay_minutes: 30
+
+# Input/Output Paths
+paths:
+  input_directory: "/data/input/medwatch"
+  output_directory: "/data/output/processed"
+  archive_directory: "/data/archive/medwatch"
+  error_directory: "/data/errors/medwatch"
+
+# File Processing
+file_processing:
+  file_pattern: "*.xml"
+  batch_size: 100
+  max_file_size_mb: 50
+  archive_after_processing: true
+  
+# E2B R2 Validation Settings
+validation:
+  strict_mode: false
+  validate_schema: true
+  validate_business_rules: true
+  
+  # Required Fields
+  required_fields:
+    - safety_report_id
+    - report_type
+    - receive_date
+    - sender_organization
+  
+  # MedDRA Settings
+  meddra:
+    version: "24.0"
+    validate_codes: true
+  
+  # Date Format
+  date_format: "YYYYMMDD"
+  allow_partial_dates: true
+
+# Data Warehouse Configuration
+warehouse:
+  enabled: true
+  connection_id: "warehouse_conn"
+  schema: "adverse_events"
+  
+  tables:
+    reports: "safety_reports"
+    patients: "patients"
+    drugs: "drugs"
+    reactions: "reactions"
+  
+  batch_insert_size: 1000
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  format: "json"
+  
+  # Log specific events
+  log_events:
+    - file_scan
+    - parse_start
+    - parse_complete
+    - validation_start
+    - validation_complete
+    - load_start
+    - load_complete
+    - pipeline_complete
+
+# Notification Settings
+notifications:
+  enabled: true
+  
+  on_failure:
+    - type: "email"
+      recipients: ["airflow-admin@example.com"]
+  
+  on_success:
+    - type: "email"
+      recipients: ["data-team@example.com"]
+      send_summary: true
+
+# Monitoring and Alerts
+monitoring:
+  enable_metrics: true
+  
+  thresholds:
+    max_processing_time_minutes: 25
+    min_success_rate: 0.95
+    max_validation_failures: 10
+
+# Security Settings
+security:
+  encrypt_pii: true
+  mask_patient_ids: true
+  audit_logging: true
+
+# Performance Tuning
+performance:
+  parallel_parsing: true
+  max_workers: 4
+  chunk_size: 10
+  
+# Feature Flags
+features:
+  enable_advanced_validation: true
+  enable_auto_correction: false
+  enable_duplicate_detection: true
+  enable_data_quality_checks: true
